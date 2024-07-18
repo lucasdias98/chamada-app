@@ -1,20 +1,26 @@
 import Chamada from "@/app/core/Chamada"
 import { IconeEdicao, IconeLixo } from "../icones/tabela"; 
+
 interface TabelaProps {
     eventos: Chamada[]
+    eventoSelecionado?: (evento: Chamada) => void
+    eventoExcluido?: (evento: Chamada) => void
 }
+
 export default function Tabela(props: TabelaProps) {
-    //… [Adicionar as funções do próximo slide aqui]
+
+    const exibirAcoes = props.eventoSelecionado || props.eventoExcluido
+
     function renderHeader() {
         return (
             <tr>
-                <th className="text-left p-3">id</th>
-                <th className="text-left p-3">nome</th>
-                <th className="text-left p-3">data</th>
-                <th className="text-left p-3">descricao</th>
-                <th className="text-left p-3">status</th>
+                <th className="text-left p-3">ID</th>
+                <th className="text-left p-3">Nome</th>
+                <th className="text-left p-3">Data</th>
+                <th className="text-left p-3">Grupo</th>
+                <th className="text-left p-3">Status</th>
 
-                <th className="p-3">Ações</th>
+                {exibirAcoes ? <th className="p-3">Ações</th> : false}
             </tr>
         )
 
@@ -30,11 +36,12 @@ export default function Tabela(props: TabelaProps) {
                     <td className="text-left p-3">{evento.descricao}</td>
                     <td className="text-left p-3">{evento.status}</td>
 
-                    {renderizarAcoes(evento)}
+                    {exibirAcoes ? renderizarAcoes(evento) : false }
                 </tr>)
         })
     }
 
+    /*
     function renderizarAcoes(evento: Chamada) {
         return (
             <td className="flex">
@@ -47,6 +54,22 @@ export default function Tabela(props: TabelaProps) {
             </td>
         )
     }
+        */
+
+    function renderizarAcoes(evento: Chamada) {
+        return (
+        <td className="flex justify-center">
+        {props.eventoSelecionado
+        ? ( <button onClick={() => props.eventoSelecionado?.(evento)}
+        className={`flex justify-center items text-green-600
+        rounded-full p-2 m-1 hover:bg-gray-100`}>{IconeEdicao}</button>)
+        : false }
+        {props.eventoExcluido
+        ? (<button onClick={() => props.eventoExcluido?.(evento)}
+        className={`flex justify-center items text-red-600
+        rounded-full p-2 m-1 hover:bg-gray-100`}>{IconeLixo}</button>)
+        : false}
+        </td>)}
 
     return (
         <table className="w-full rounded-xl overflow-hidden">
@@ -59,6 +82,5 @@ export default function Tabela(props: TabelaProps) {
             </tbody>
         </table>
     )
-
 
 }

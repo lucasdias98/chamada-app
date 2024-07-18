@@ -21,15 +21,15 @@ export default class Chamada {
     }
 
     static geraEventosMock() {
-        return [new Chamada(1, "UPF em Dança",
+        return [new Chamada(1, "Matheus Prestes",
             "10/11/2024", "10/11/2024 17:00", "10/11/2024 17:00",
-            "Evento de dança",
-            "PREVISTO",
+            "Intergaláticos",
+            "Ativo",
         ),
-        new Chamada(2, "UPF na feitech",
+        new Chamada(2, "Isadora Matias",
             "10/11/2024", "10/11/2024 17:00", "10/11/2024 17:00",
-            "Evento de tecnologia",
-            "PREVISTO",
+            "Turma B",
+            "Inativo",
         )
         ]
     }
