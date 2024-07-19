@@ -13,6 +13,8 @@ export default function Navbar(props: any) {
                     <a href="/chamada" className="text-lg no-underline hover:text-amber-300 ml-2">
                         Ponto</a>
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <a href="/codeList" className="text-lg no-underline hover:text-amber-300 ml-2">
+                        QR Codes</a>
                 </div>
                     
             </nav>

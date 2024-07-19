@@ -1,9 +1,8 @@
 'use client';
 import { useState } from 'react';
 import Layout from '../components/chamada/layout';
-import QrcodeLeitor from '../components/chamada/qrcodeLeitor';
+import TabelaQRcode from '../components/chamada/tabelaQRcode';
 import Aluno from '../core/Aluno';
-import Presenca from '../core/Presenca';
 
 export default function Eventos() {
 
@@ -11,10 +10,8 @@ export default function Eventos() {
 
     return (
         <div className={`flex justify-center items-center h-screen bg-gradient-to-bl from-indigo-900 via-indigo-400 to-indigo-900 text-white`}>
-            <Layout titulo="Leitura de QR Code">
-                <QrcodeLeitor alunos={alunos} presencas={[]} setPresencas={function (presencas: Presenca[]): void {
-                    throw new Error('Function not implemented.');
-                } } />
+            <Layout titulo="Lista de QRcode">
+                <TabelaQRcode alunos={alunos}></TabelaQRcode>
             </Layout>
         </div>
     );
