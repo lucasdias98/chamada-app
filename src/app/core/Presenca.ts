@@ -27,4 +27,11 @@ export default class Presenca {
         this.alunoId = alunoId;
         this.data = data;
     }
+
+    static geraPresencasMock() {
+        return [
+            new Presenca(1, new Date().toLocaleDateString()),
+            new Presenca(2, new Date().toLocaleDateString())
+        ];
+    }
 }

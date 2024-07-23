@@ -28,9 +28,9 @@ export default class Aluno {
             "Carmen Prestes",
             "99999-9999",
             "Rua benicio guimarares",
-            "Intergaláticos",
+            "Turma C",
             "Ativo",
-            "qrcode code 1",
+            "1",
         ),
         new Aluno(2, "Isadora Matias",
             "Carlos Matheus Matias",
@@ -39,6 +39,14 @@ export default class Aluno {
             "Turma B",
             "Inativo",
             "qrcode code 2",
+        ),
+        new Aluno(3, "Enzo Carvalho",
+            "Selena  Carvalho",
+            "99999-9999",
+            "Rua pedregulho",
+            "Turma A",
+            "Ativo",
+            "qrcode code 3",
         )
         ]
     }

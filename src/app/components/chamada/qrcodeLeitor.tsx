@@ -1,10 +1,7 @@
-// components/chamada/qrcodeLeitor.tsx
-/*
 import React, { useState } from 'react';
-import QRCode from 'qrcode.react';
 import Aluno from '@/app/core/Aluno';
 import Presenca from '@/app/core/Presenca';
-import Botao from './botao';
+import Modal from 'react-modal';
 import { QrReader } from 'react-qr-reader';
 
 interface QrcodeLeitorProps {
@@ -12,71 +9,107 @@ interface QrcodeLeitorProps {
     presencas: Presenca[];
     setPresencas: (presencas: Presenca[]) => void;
 }
-*/
-import React, { useState } from 'react';
-import QRCode from 'qrcode.react';
-import Aluno from '@/app/core/Aluno';
-import Presenca from '@/app/core/Presenca';
-import Botao from './botao';
-import { QrReader } from 'react-qr-reader';
 
-interface QrcodeLeitorProps {
-    alunos: Aluno[];
-    presencas: Presenca[];
-    setPresencas: (presencas: Presenca[]) => void;
-}
+const customStyles = {
+    content: {
+        top: '50%',
+        left: '50%',
+        right: 'auto',
+        bottom: 'auto',
+        marginRight: '-50%',
+        transform: 'translate(-50%, -50%)',
+        width: '80%', // Ajustar conforme necessário
+        maxWidth: '600px', // Ajustar conforme necessário
+    },
+};
 
 const QrcodeLeitor: React.FC<QrcodeLeitorProps> = ({ alunos, presencas, setPresencas }) => {
-    const [showScanner, setShowScanner] = useState(false);
     const [message, setMessage] = useState('');
+    const [decodedData, setDecodedData] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [modalIsOpen, setModalIsOpen] = useState(false);
 
-    const handleResult = (result: any, error: any) => {
+    const handleScan = (result: any) => {
         if (result) {
-            const data = result.text;
-            const aluno = alunos.find(aluno => aluno.qrcode === data);
-            if (aluno) {
-                // Marcar presença na data atual
-                const today = new Date().toLocaleDateString();
-                const novaPresenca = new Presenca(aluno.id, today);
-                setPresencas([...presencas, novaPresenca]);
-                setMessage(`Presença registrada para ${aluno.nome} em ${today}`);
-                setShowScanner(false);
-            } else {
-                setMessage('QR code não reconhecido');
+            const data = result?.text ?? null;
+            if (data) {
+                // Atualiza o estado com a string decodificada
+                setDecodedData(data.replace(/ /g, '+'));
+                setError(null);
+                // Abre a modal somente se a string for nova
+                if (!modalIsOpen) {
+                    setModalIsOpen(true);
+                }
             }
         }
+    };
 
-        if (error) {
-            console.error(error);
-            setMessage('Erro ao ler o QR code');
+    const handleError = (error: any) => {
+        setError('Erro ao ler o QR code');
+        setDecodedData(null);
+        console.error(error);
+    };
+
+    const handleClear = () => {
+        setDecodedData(null);
+        setModalIsOpen(false);
+    };
+
+    const closeModal = () => {
+        setModalIsOpen(false);
+    };
+
+    const handleCopy = () => {
+        if (decodedData) {
+            navigator.clipboard.writeText(decodedData).then(() => {
+                setMessage('Texto copiado para a área de transferência!');
+            }).catch(err => {
+                console.error('Falha ao copiar o texto: ', err);
+                setMessage('Erro ao copiar o texto.');
+            });
         }
     };
 
     return (
         <div className="flex flex-col items-center">
-            <Botao className="mr-3 mb-4" cor="bg-gradient-to-r from-blue-500 to-blue-700"
-                onClick={() => setShowScanner(!showScanner)}>
-                {showScanner ? 'Fechar Leitor' : 'Iniciar Leitor de QR Code'}
-            </Botao>
-            {showScanner && (
-                <div className="mb-4">
-                    <QrReader
-                        onResult={handleResult}
-                        style={{ width: '300px' }}
-                    />
+            <h2>Decodificador de QR Code</h2>
+            <div className="mb-4" style={{ width: '300px' }}>
+                <QrReader
+                    onResult={(result, error) => {
+                        if (result) {
+                            handleScan(result);
+                        } else if (error) {
+                            handleError(error);
+                        }
+                    }}
+                    constraints={{ facingMode: 'environment' }} // Configuração básica da câmera
+                />
+            </div>
+            <Modal
+                isOpen={modalIsOpen}
+                onRequestClose={closeModal}
+                style={customStyles}
+                contentLabel="QR Code Decodificado"
+            >
+                <h3>QR Code Decodificado:</h3>
+                {decodedData && (
+                    <p>{decodedData}</p>
+                )}
+                <button onClick={handleCopy} style={{ marginRight: '10px' }}>Copiar</button>
+                <button onClick={closeModal} style={{ marginRight: '10px' }}>Fechar</button>
+                <button onClick={handleClear}>Limpar</button>
+                {message && (
+                    <p style={{ marginTop: '10px' }}>{message}</p>
+                )}
+            </Modal>
+            {error && (
+                <div>
+                    <h3>Erro:</h3>
+                    <p>{error}</p>
                 </div>
             )}
-            {message && <p>{message}</p>}
-            <div className="grid grid-cols-4 gap-4">
-                {alunos.map((aluno, idx) => (
-                    <div key={idx} className="flex flex-col items-center">
-                        <QRCode value={aluno.qrcode} />
-                        <p>{aluno.nome}</p>
-                    </div>
-                ))}
-            </div>
         </div>
     );
-}
+};
 
 export default QrcodeLeitor;

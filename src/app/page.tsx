@@ -111,7 +111,6 @@ export default function () {
                         <Tabela eventos={alunos}
                             eventoSelecionado={alunoSelecionado}
                             eventoExcluido={alunoExcluido} />
-                        <QrcodeLeitor alunos={alunos} presencas={presencas} setPresencas={setPresencas} />
                     </>
                 ) :
                     <Formulario evento={alunoAtual}
