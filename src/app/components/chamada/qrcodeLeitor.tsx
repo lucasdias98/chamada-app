@@ -3,6 +3,7 @@ import Aluno from '@/app/core/Aluno';
 import Presenca from '@/app/core/Presenca';
 import Modal from 'react-modal';
 import { QrReader } from 'react-qr-reader';
+import QrScanner from 'qr-scanner';
 
 interface QrcodeLeitorProps {
     alunos: Aluno[];
@@ -28,6 +29,7 @@ const QrcodeLeitor: React.FC<QrcodeLeitorProps> = ({ alunos, presencas, setPrese
     const [decodedData, setDecodedData] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [modalIsOpen, setModalIsOpen] = useState(false);
+    const [id, setId] = useState<string | null>(null);
 
     const handleScan = (result: any) => {
         if (result) {
@@ -46,7 +48,6 @@ const QrcodeLeitor: React.FC<QrcodeLeitorProps> = ({ alunos, presencas, setPrese
 
     const handleError = (error: any) => {
         setError('Erro ao ler o QR code');
-        setDecodedData(null);
         console.error(error);
     };
 
@@ -67,6 +68,26 @@ const QrcodeLeitor: React.FC<QrcodeLeitorProps> = ({ alunos, presencas, setPrese
                 console.error('Falha ao copiar o texto: ', err);
                 setMessage('Erro ao copiar o texto.');
             });
+        }
+    };
+
+    const handleDecode = () => {
+        if (decodedData) {
+            try {
+                // Converte a string Base64 em uma URL de dados de imagem
+                const imageUrl = `data:image/png;base64,${decodedData}`;
+                
+                // Decodifica a imagem para extrair o ID ou outra informação
+                QrScanner.scanImage(imageUrl)
+                    .then(result => {
+                        setId(result); // Aqui você pode ajustar para extrair o ID específico do resultado
+                    })
+                    .catch(err => {
+                        console.error('Erro ao decodificar a imagem: ', err);
+                    });
+            } catch (error) {
+                console.error('Erro ao processar a string Base64: ', error);
+            }
         }
     };
 
@@ -98,6 +119,11 @@ const QrcodeLeitor: React.FC<QrcodeLeitorProps> = ({ alunos, presencas, setPrese
                 <button onClick={handleCopy} style={{ marginRight: '10px' }}>Copiar</button>
                 <button onClick={closeModal} style={{ marginRight: '10px' }}>Fechar</button>
                 <button onClick={handleClear}>Limpar</button>
+                &nbsp;&nbsp;&nbsp;
+                <button onClick={handleDecode} style={{ marginTop: '10px' }}>Exibir ID</button>
+                {id && (
+                    <p style={{ marginTop: '10px' }}>ID Decodificado: {id}</p>
+                )}
                 {message && (
                     <p style={{ marginTop: '10px' }}>{message}</p>
                 )}
