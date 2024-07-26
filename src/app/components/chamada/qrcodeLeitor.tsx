@@ -4,6 +4,7 @@ import Presenca from '@/app/core/Presenca';
 import Modal from 'react-modal';
 import { QrReader } from 'react-qr-reader';
 import QrScanner from 'qr-scanner';
+import Botao from './botao';
 
 interface QrcodeLeitorProps {
     alunos: Aluno[];
@@ -30,15 +31,14 @@ const QrcodeLeitor: React.FC<QrcodeLeitorProps> = ({ alunos, presencas, setPrese
     const [error, setError] = useState<string | null>(null);
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [id, setId] = useState<string | null>(null);
+    const [scannerActive, setScannerActive] = useState(false);
 
     const handleScan = (result: any) => {
         if (result) {
             const data = result?.text ?? null;
             if (data) {
-                // Atualiza o estado com a string decodificada
                 setDecodedData(data.replace(/ /g, '+'));
                 setError(null);
-                // Abre a modal somente se a string for nova
                 if (!modalIsOpen) {
                     setModalIsOpen(true);
                 }
@@ -47,17 +47,19 @@ const QrcodeLeitor: React.FC<QrcodeLeitorProps> = ({ alunos, presencas, setPrese
     };
 
     const handleError = (error: any) => {
+        console.error('Erro ao ler o QR code:', error);
         setError('Erro ao ler o QR code');
-        console.error(error);
     };
 
     const handleClear = () => {
         setDecodedData(null);
         setModalIsOpen(false);
+        setScannerActive(false);
     };
 
     const closeModal = () => {
         setModalIsOpen(false);
+        setScannerActive(false);
     };
 
     const handleCopy = () => {
@@ -65,47 +67,115 @@ const QrcodeLeitor: React.FC<QrcodeLeitorProps> = ({ alunos, presencas, setPrese
             navigator.clipboard.writeText(decodedData).then(() => {
                 setMessage('Texto copiado para a área de transferência!');
             }).catch(err => {
-                console.error('Falha ao copiar o texto: ', err);
+                console.error('Falha ao copiar o texto:', err);
                 setMessage('Erro ao copiar o texto.');
             });
         }
     };
 
+    /*
     const handleDecode = () => {
         if (decodedData) {
             try {
-                // Converte a string Base64 em uma URL de dados de imagem
                 const imageUrl = `data:image/png;base64,${decodedData}`;
-                
-                // Decodifica a imagem para extrair o ID ou outra informação
                 QrScanner.scanImage(imageUrl)
                     .then(result => {
-                        setId(result); // Aqui você pode ajustar para extrair o ID específico do resultado
+                        setId(result); // Ajustar para extrair o ID específico do resultado
+                        // Enviar ID para o back-end para verificação
+                        fetch('/api/verify', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ id: result })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                setMessage('Aluno verificado com sucesso!');
+                                // Atualizar presenças ou realizar outras ações conforme necessário
+                            } else {
+                                setMessage('Falha na verificação do aluno.');
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Erro ao verificar o aluno:', err);
+                            setMessage('Erro ao verificar o aluno.');
+                        });
                     })
                     .catch(err => {
-                        console.error('Erro ao decodificar a imagem: ', err);
+                        console.error('Erro ao decodificar a imagem:', err);
                     });
             } catch (error) {
-                console.error('Erro ao processar a string Base64: ', error);
+                console.error('Erro ao processar a string Base64:', error);
             }
         }
+    };
+    */
+
+    const handleDecode = () => {
+    if (decodedData) {
+        try {
+            const imageUrl = `data:image/png;base64,${decodedData}`;
+            QrScanner.scanImage(imageUrl)
+                .then(result => {
+                    setId(result); // Ajustar para extrair o ID específico do resultado
+                    // Enviar ID para o back-end para verificação
+                    fetch('/api/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ id: result })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            setMessage(`Aluno verificado com sucesso - ${data.aluno.nome}`);
+                            // Atualizar presenças ou realizar outras ações conforme necessário
+                        } else {
+                            setMessage('Falha na verificação do aluno.');
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Erro ao verificar o aluno:', err);
+                        setMessage('Erro ao verificar o aluno.');
+                    });
+                })
+                .catch(err => {
+                    console.error('Erro ao decodificar a imagem:', err);
+                });
+        } catch (error) {
+            console.error('Erro ao processar a string Base64:', error);
+        }
+    }
+};
+
+
+    const startScanner = () => {
+        setScannerActive(true);
+        setError(null); // Limpa o erro quando o scanner é ativado
     };
 
     return (
         <div className="flex flex-col items-center">
-            <h2>Decodificador de QR Code</h2>
-            <div className="mb-4" style={{ width: '300px' }}>
-                <QrReader
-                    onResult={(result, error) => {
-                        if (result) {
-                            handleScan(result);
-                        } else if (error) {
-                            handleError(error);
-                        }
-                    }}
-                    constraints={{ facingMode: 'environment' }} // Configuração básica da câmera
-                />
-            </div>
+            <Botao className="mb-4" cor="bg-gradient-to-r from-blue-700 to-blue-900" onClick={startScanner}>
+                Ler QRCODE
+            </Botao>
+            {scannerActive && (
+                <div className="mb-4" style={{ width: '300px' }}>
+                    <QrReader
+                        onResult={(result, error) => {
+                            if (result) {
+                                handleScan(result);
+                            } else if (error) {
+                                handleError(error);
+                            }
+                        }}
+                        constraints={{ facingMode: 'environment' }} // Configuração básica da câmera
+                    />
+                </div>
+            )}
             <Modal
                 isOpen={modalIsOpen}
                 onRequestClose={closeModal}
@@ -116,11 +186,13 @@ const QrcodeLeitor: React.FC<QrcodeLeitorProps> = ({ alunos, presencas, setPrese
                 {decodedData && (
                     <p>{decodedData}</p>
                 )}
-                <button onClick={handleCopy} style={{ marginRight: '10px' }}>Copiar</button>
-                <button onClick={closeModal} style={{ marginRight: '10px' }}>Fechar</button>
-                <button onClick={handleClear}>Limpar</button>
+                <Botao className="mb-4" cor="bg-gradient-to-r from-blue-700 to-blue-900" onClick={closeModal}>
+                    Fechar
+                </Botao>
                 &nbsp;&nbsp;&nbsp;
-                <button onClick={handleDecode} style={{ marginTop: '10px' }}>Exibir ID</button>
+                <Botao className="mb-4" cor="bg-gradient-to-r from-blue-700 to-blue-900" onClick={handleDecode}>
+                    Exibir ID
+                </Botao>
                 {id && (
                     <p style={{ marginTop: '10px' }}>ID Decodificado: {id}</p>
                 )}

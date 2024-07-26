@@ -103,7 +103,7 @@ export default function () {
                 {visivel === 'tabela' ? (
                     <> 
                         <div className="flex justify-end">
-                            <Botao className="mb-4" cor="bg-gradient-to-r from-green-500 to-green-700"
+                            <Botao className="mb-4" cor="bg-gradient-to-r from-blue-700 to-blue-900"
                                 onClick={() => novoAluno()}>
                                 Cadastrar Aluno 
                             </Botao>
